@@ -51,52 +51,144 @@ Write the Python code to initialize the camera and implement the HOG algorithm.
 Run the code and verify that the system detects human presence and draws bounding boxes.
 
  ###  Python Code:
- 
+```
 import cv2
 import imutils
 
-###  Initialize HOG descriptor with people detector
+# ==========================================
+# Android DroidCam URL
+# ==========================================
+
+# Replace with your Android phone IP
+url = "http://172.17.147.55:4747/video"
+
+# Open video stream
+cap = cv2.VideoCapture(url)
+
+# Check camera connection
+if not cap.isOpened():
+    print("Unable to connect to Android camera stream")
+    exit()
+
+print("Android Camera Connected Successfully")
+
+# ==========================================
+# Initialize HOG Person Detector
+# ==========================================
+
 hog = cv2.HOGDescriptor()
 hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
 
-### Initialize video capture
-cap = cv2.VideoCapture(0)  # Change index if using CSI camera
+# ==========================================
+# Main Loop
+# ==========================================
 
 while True:
+
+    # Read frame
     ret, frame = cap.read()
+
     if not ret:
+        print("Failed to receive frame")
         break
 
-  ### Resize frame for faster processing
+    # Resize frame
     frame = imutils.resize(frame, width=640)
 
-  ### Detect people in the image
-    (rects, weights) = hog.detectMultiScale(frame, winStride=(4, 4),
-                                            padding=(8, 8), scale=1.05)
+    # ==========================================
+    # Detect People
+    # ==========================================
 
- ### Draw bounding boxes
+    rects, weights = hog.detectMultiScale(
+        frame,
+        winStride=(4, 4),
+        padding=(8, 8),
+        scale=1.05
+    )
+
+    person_count = 0
+
+    # Draw rectangles
     for (x, y, w, h) in rects:
-        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-  ### Display the result
-    cv2.imshow("Occupancy Detection", frame)
+        person_count += 1
 
-###  Exit on pressing 'q'
+        cv2.rectangle(
+            frame,
+            (x, y),
+            (x + w, y + h),
+            (0, 255, 0),
+            2
+        )
+
+        cv2.putText(
+            frame,
+            "Person",
+            (x, y - 10),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.5,
+            (0, 255, 0),
+            2
+        )
+
+    # ==========================================
+    # Occupancy Status
+    # ==========================================
+
+    if person_count > 0:
+        status = "OCCUPIED"
+        color = (0, 0, 255)
+    else:
+        status = "EMPTY"
+        color = (255, 0, 0)
+
+    cv2.putText(
+        frame,
+        f"Status : {status}",
+        (20, 40),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.8,
+        color,
+        2
+    )
+
+    cv2.putText(
+        frame,
+        f"Persons : {person_count}",
+        (20, 80),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.8,
+        (255, 255, 0),
+        2
+    )
+
+    # ==========================================
+    # Show Output
+    # ==========================================
+
+    cv2.imshow("Android Occupancy Detection", frame)
+
+    # Press q to exit
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
+# ==========================================
+# Cleanup
+# ==========================================
+
 cap.release()
 cv2.destroyAllWindows()
-
-
+```
 ### SCREEN SHOTS OF OUTPUT 
 
 
+<img width="1919" height="1079" alt="Screenshot 2026-05-20 104159" src="https://github.com/user-attachments/assets/4ba79a5f-2b12-4ee0-a9b7-99b1e3b98b81" />
 
 
 
 ### RASPI INTERFACE 
 
+<img width="575" height="1280" alt="WhatsApp Image 2026-05-20 at 10 44 34 AM" src="https://github.com/user-attachments/assets/48fc5e2b-07ad-4781-afb1-b5d201d02e4c" />
 
 
 
